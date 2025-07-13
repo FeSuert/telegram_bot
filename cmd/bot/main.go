@@ -5,7 +5,8 @@ import (
 	"os"
 	"time"
 
-	"home-alarm-bot/internal/alarm"
+	"home-alarm-bot/internal/httpapi"
+	"home-alarm-bot/internal/state"
 	"home-alarm-bot/internal/telegram"
 
 	"github.com/joho/godotenv"
@@ -14,26 +15,34 @@ import (
 func mustEnv(k string) string {
 	v := os.Getenv(k)
 	if v == "" {
-		log.Fatalf("missing %s,", k)
+		log.Fatalf("missing %s", k)
 	}
 	return v
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading .env file: %v", err)
-	}
-	tg := telegram.NewAPI(mustEnv("BOT_TOKEN"))
-	pi := alarm.New(mustEnv("SERVER_BASE_URL"))
-	bot := telegram.NewBot(tg, pi)
+	_ = godotenv.Load()
 
+	tgAPI := telegram.NewAPI(mustEnv("BOT_TOKEN"))
+	store := state.New()
+	bot   := telegram.NewBot(tgAPI, store)
+
+	// start local HTTP listener in a goroutine
+	go func() {
+		srv := httpapi.New(store, bot)
+		if err := srv.Listen("127.0.0.1:8080"); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Telegram long-poll loop
 	var offset int
-
 	for {
-		updates, err := tg.GetUpdates(offset)
+		updates, err := tgAPI.GetUpdates(offset)
 		if err != nil {
 			log.Println("getUpdates:", err)
 			time.Sleep(5 * time.Second)
+			continue
 		}
 		for _, u := range updates {
 			bot.Handle(u)

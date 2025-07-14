@@ -8,6 +8,7 @@ import (
 	"home-alarm-bot/internal/httpapi"
 	"home-alarm-bot/internal/state"
 	"home-alarm-bot/internal/telegram"
+	"home-alarm-bot/internal/alarm"
 
 	"github.com/joho/godotenv"
 )
@@ -23,9 +24,10 @@ func mustEnv(k string) string {
 func main() {
 	_ = godotenv.Load()
 
+	alarmClient := alarm.New(mustEnv("SERVER_BASE_URL"))
 	tgAPI := telegram.NewAPI(mustEnv("BOT_TOKEN"))
 	store := state.New()
-	bot   := telegram.NewBot(tgAPI, store)
+	bot   := telegram.NewBot(tgAPI, store, alarmClient)
 
 	// start local HTTP listener in a goroutine
 	go func() {

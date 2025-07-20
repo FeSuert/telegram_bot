@@ -1,11 +1,11 @@
 package telegram
 
 import (
-    "strings"
-    "sync"
+	"strings"
+	"sync"
 
-    alarmPkg "home-alarm-bot/internal/alarm"
-    "home-alarm-bot/internal/state"
+	alarmPkg "home-alarm-bot/internal/alarm"
+	"home-alarm-bot/internal/state"
 )
 
 type Bot struct {

@@ -1,4 +1,3 @@
-// internal/httpapi/httpapi.go
 package httpapi
 
 import (

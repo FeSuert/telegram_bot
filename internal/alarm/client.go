@@ -1,12 +1,12 @@
 package alarm
 
 import (
-    "encoding/json"
-    "fmt"
-    "io"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"net/url"
-    "net/http"
-    "strings"
+	"strings"
 )
 
 type Client struct {
@@ -18,7 +18,7 @@ func New(base string) *Client {
     return &Client{base: strings.TrimRight(base, "/"), http: &http.Client{}}
 }
 
-/* --------------- state-changing commands use GET, not POST ---------------- */
+/* state-changing commands use GET */
 
 func (c *Client) Arm() error    { return c.simpleGet("/arm") }
 func (c *Client) Disarm() error { return c.simpleGet("/disarm") }
@@ -34,7 +34,7 @@ func (c *Client) simpleGet(path string) error {
     return nil
 }
 
-/* --------------------------- status endpoint ------------------------------ */
+/* status endpoint */
 
 func (c *Client) Status() (string, error) {
     res, err := c.http.Get(c.base + "/status")
